@@ -2,6 +2,8 @@
 
 A comprehensive Python-based management interface for Minecraft servers and Discord bots with real-time monitoring, performance analytics, and intelligent alerting system.
 
+> **📝 Personal Note:** This project was created for fun to manage a small Minecraft server for friends. While it includes comprehensive features and professional documentation, it's designed for small-scale use and personal learning. Feel free to use, modify, or learn from it, but don't expect enterprise-level complexity! 😊
+
 ## 📋 Table of Contents
 - [Features](#-features)
 - [Prerequisites](#-prerequisites)
