@@ -55,6 +55,7 @@ class MinecraftServerGUI:
         self.bot_log_queue = queue.Queue()
         self.server_running = False
         self.bot_running = False
+        self.monitoring_external_server = False
         
         # Server paths - update these as needed
         self.server_dir = r"F:\server mine atm102\atm10 2"
@@ -896,12 +897,16 @@ class MinecraftServerGUI:
                 # Check if server is running (either internally started or external)
                 if self.server_running and self.server_process:
                     # Server started through GUI
+                    self.monitoring_external_server = False
                     self.collect_performance_data()
                 else:
                     # Check for external Minecraft server process
                     external_pid = self.check_existing_server_process()
                     if external_pid:
+                        self.monitoring_external_server = True
                         self.collect_external_performance_data(external_pid)
+                    else:
+                        self.monitoring_external_server = False
                     
                 # Update display on main thread
                 self.root.after(0, self.update_analytics_display)
@@ -1008,9 +1013,8 @@ class MinecraftServerGUI:
     def update_analytics_display(self):
         """Update the analytics display with current data"""
         try:
-            # Check if we have performance data (from internal or external server)
-            has_server_data = (self.server_running and self.performance_data['cpu']) or \
-                             (self.check_existing_server_process() and self.performance_data['cpu'])
+            # Check if we have performance data (from internal server or if we have collected external data)
+            has_server_data = self.performance_data['cpu'] and len(self.performance_data['cpu']) > 0
                              
             if has_server_data:
                 # Update current stats
@@ -1054,8 +1058,10 @@ class MinecraftServerGUI:
                 # Update status based on server type
                 if self.server_running:
                     self.analytics_status.config(text="Analytics: Active (Internal Server)", fg="#4CAF50")
-                else:
+                elif self.monitoring_external_server:
                     self.analytics_status.config(text="Analytics: Active (External Server)", fg="#2196F3")
+                else:
+                    self.analytics_status.config(text="Analytics: Active", fg="#4CAF50")
             else:
                 # Server offline
                 self.cpu_label.config(text="0.0%", fg="#666666")

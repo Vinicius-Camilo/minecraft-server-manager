@@ -83,13 +83,13 @@ class LauncherGUI:
         messagebox.showinfo("Launching", "Combined GUI interface will start after you click OK.\nThis launcher will then close.")
         
         try:
-            subprocess.Popen([sys.executable.replace('python.exe', 'pythonw.exe'), "start.py", "gui"],
+            subprocess.Popen([sys.executable.replace('python.exe', 'pythonw.exe'), "server_gui.py"],
                            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0)
             self.root.destroy()  # Use destroy instead of quit
             sys.exit(0)
         except Exception as e:
             try:
-                subprocess.Popen([sys.executable, "start.py", "gui"])
+                subprocess.Popen([sys.executable, "server_gui.py"])
                 self.root.destroy()  # Use destroy instead of quit
                 sys.exit(0)
             except Exception as e2:
@@ -97,40 +97,47 @@ class LauncherGUI:
             
     def launch_bot_gui(self):
         """Launch Discord bot GUI only"""
+    def launch_bot_gui(self):
+        """Launch Discord bot GUI only"""
         try:
-            subprocess.Popen([sys.executable.replace('python.exe', 'pythonw.exe'), "discord_bot_gui.py"])
-            messagebox.showinfo("Launched", "Discord Bot GUI is starting...\nThis launcher will now close.")
-            self.root.quit()
+            subprocess.Popen([sys.executable.replace('python.exe', 'pythonw.exe'), "bot.py"])
+            messagebox.showinfo("Launched", "Discord Bot is starting...\nThis launcher will now close.")
+            self.root.destroy()
+            sys.exit(0)
         except Exception as e:
             try:
-                subprocess.Popen([sys.executable, "discord_bot_gui.py"])
-                messagebox.showinfo("Launched", "Discord Bot GUI is starting...\nThis launcher will now close.")
-                self.root.quit()
+                subprocess.Popen([sys.executable, "bot.py"])
+                messagebox.showinfo("Launched", "Discord Bot is starting...\nThis launcher will now close.")
+                self.root.destroy()
+                sys.exit(0)
             except Exception as e2:
-                messagebox.showerror("Error", f"Failed to launch bot GUI: {e2}")
+                messagebox.showerror("Error", f"Failed to launch bot: {e2}")
             
     def launch_gui_mode(self):
         """Launch with GUI interface"""
         try:
-            subprocess.Popen([sys.executable.replace('python.exe', 'pythonw.exe'), "start.py", "gui"])
+            subprocess.Popen([sys.executable.replace('python.exe', 'pythonw.exe'), "server_gui.py"])
             messagebox.showinfo("Launched", "Server GUI interface is starting...\nThis launcher will now close.")
-            self.root.quit()
+            self.root.destroy()
+            sys.exit(0)
         except Exception as e:
             try:
-                subprocess.Popen([sys.executable, "start.py", "gui"])
+                subprocess.Popen([sys.executable, "server_gui.py"])
                 messagebox.showinfo("Launched", "Server GUI interface is starting...\nThis launcher will now close.")
-                self.root.quit()
+                self.root.destroy()
+                sys.exit(0)
             except Exception as e2:
                 messagebox.showerror("Error", f"Failed to launch GUI mode: {e2}")
             
     def launch_standard_mode(self):
-        """Launch in standard mode"""
+        """Launch in console mode"""
         try:
-            subprocess.Popen([sys.executable, "start.py"])
-            messagebox.showinfo("Launched", "Standard mode is starting...\nThis launcher will now close.")
-            self.root.quit()
+            subprocess.Popen([sys.executable, "bot.py"])
+            messagebox.showinfo("Launched", "Console mode is starting...\nThis launcher will now close.")
+            self.root.destroy()
+            sys.exit(0)
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to launch standard mode: {e}")
+            messagebox.showerror("Error", f"Failed to launch console mode: {e}")
 
 def main():
     root = tk.Tk()
