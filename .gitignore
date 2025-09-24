@@ -1,0 +1,78 @@
+# Environment Variables and Secrets
+.env
+*.env
+.env.local
+.env.production
+.env.staging
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project Specific
+status_message_id.txt
+*.log
+*.txt
+backup_*/
+logs/
+temp/
+
+# Server Files (if any)
+server.properties
+server.jar
+world/
+plugins/
+
+# Discord Bot Token Files
+token.txt
+bot_token.txt
+config.json
+
+# Batch Files (keep only essential ones)
+START HERE SILENT.vbs
+Troubleshoot.bat
+Alternative Launcher.bat
