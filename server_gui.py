@@ -579,10 +579,16 @@ class MinecraftServerGUI:
                     cmdline = proc.info.get('cmdline', [])
                     if cmdline and 'java' in cmdline[0].lower():
                         # Check if it's a Minecraft server process
-                        cmdline_str = ' '.join(cmdline)
-                        if ('forgeserver' in cmdline_str or 
-                            'minecraft' in cmdline_str.lower() or 
-                            'neoforge' in cmdline_str.lower()):
+                        cmdline_str = ' '.join(cmdline).lower()
+                        if (('forgeserver' in cmdline_str) or 
+                            ('minecraft' in cmdline_str) or 
+                            ('neoforge' in cmdline_str) or
+                            ('server.jar' in cmdline_str) or
+                            ('spigot' in cmdline_str) or
+                            ('paper' in cmdline_str) or
+                            ('bukkit' in cmdline_str) or
+                            ('fabric' in cmdline_str) or
+                            ('-server' in cmdline_str and '.jar' in cmdline_str)):
                             return proc.info['pid']
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
                     continue
@@ -887,8 +893,15 @@ class MinecraftServerGUI:
         """Background thread for collecting performance data"""
         while True:
             try:
+                # Check if server is running (either internally started or external)
                 if self.server_running and self.server_process:
+                    # Server started through GUI
                     self.collect_performance_data()
+                else:
+                    # Check for external Minecraft server process
+                    external_pid = self.check_existing_server_process()
+                    if external_pid:
+                        self.collect_external_performance_data(external_pid)
                     
                 # Update display on main thread
                 self.root.after(0, self.update_analytics_display)
@@ -954,10 +967,52 @@ class MinecraftServerGUI:
             pass
         return 20.0
         
+    def collect_external_performance_data(self, pid):
+        """Collect performance data from external Minecraft server process"""
+        try:
+            import psutil
+            process = psutil.Process(pid)
+            
+            # Collect CPU and memory data
+            cpu_percent = process.cpu_percent()
+            memory_info = process.memory_info()
+            memory_mb = memory_info.rss / 1024 / 1024  # Convert to MB
+            
+            current_time = datetime.now()
+            
+            # Store data
+            self.performance_data['cpu'].append(cpu_percent)
+            self.performance_data['memory'].append(memory_mb)
+            self.performance_data['timestamps'].append(current_time)
+            
+            # Try to extract TPS from logs (if available)
+            tps = self.extract_tps_from_logs()
+            self.performance_data['tps'].append(tps if tps else 20.0)
+            
+            # Set server start time if not already set
+            if not self.server_start_time:
+                # For external processes, estimate start time from process creation
+                try:
+                    process_start = datetime.fromtimestamp(process.create_time())
+                    self.server_start_time = process_start
+                except:
+                    self.server_start_time = current_time
+                    
+        except (psutil.NoSuchProcess, psutil.AccessDenied, ImportError) as e:
+            # If we can't get process info, add placeholder data
+            self.performance_data['cpu'].append(0)
+            self.performance_data['memory'].append(0)
+            self.performance_data['timestamps'].append(datetime.now())
+            self.performance_data['tps'].append(20.0)
+        
     def update_analytics_display(self):
         """Update the analytics display with current data"""
         try:
-            if self.server_running and self.performance_data['cpu']:
+            # Check if we have performance data (from internal or external server)
+            has_server_data = (self.server_running and self.performance_data['cpu']) or \
+                             (self.check_existing_server_process() and self.performance_data['cpu'])
+                             
+            if has_server_data:
                 # Update current stats
                 current_cpu = self.performance_data['cpu'][-1] if self.performance_data['cpu'] else 0
                 current_memory = self.performance_data['memory'][-1] if self.performance_data['memory'] else 0
@@ -996,14 +1051,18 @@ class MinecraftServerGUI:
                 # Update performance history
                 self.update_performance_graph()
                 
-                self.analytics_status.config(text="Analytics: Active", fg="#4CAF50")
+                # Update status based on server type
+                if self.server_running:
+                    self.analytics_status.config(text="Analytics: Active (Internal Server)", fg="#4CAF50")
+                else:
+                    self.analytics_status.config(text="Analytics: Active (External Server)", fg="#2196F3")
             else:
                 # Server offline
                 self.cpu_label.config(text="0.0%", fg="#666666")
                 self.memory_label.config(text="0 MB", fg="#666666")
                 self.uptime_label.config(text="00:00:00", fg="#666666")
                 self.tps_label.config(text="--", fg="#666666")
-                self.analytics_status.config(text="Analytics: Server Offline", fg="#FF9800")
+                self.analytics_status.config(text="Analytics: No Server Detected", fg="#FF9800")
                 
         except Exception as e:
             self.analytics_status.config(text=f"Analytics error: {e}", fg="#f44336")
