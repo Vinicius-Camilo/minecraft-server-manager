@@ -300,6 +300,20 @@ async def poll_status(message):
             external_working = True
             server_online = True
             print(f"[DEBUG] External server online! {status.players.online} players connected")
+            
+            # Update player list from external server
+            players_online.clear()
+            if status.players.sample:
+                for player in status.players.sample:
+                    players_online.add(player.name)
+                print(f"[DEBUG] Player names from external server: {', '.join(players_online)}")
+            elif status.players.online > 0:
+                # Server has players but didn't return names (server config issue)
+                print(f"[DEBUG] Server has {status.players.online} players but names not available (server hide-online-players=true?)")
+                players_online.add(f"Player 1" if status.players.online == 1 else f"{status.players.online} Players")
+            else:
+                print(f"[DEBUG] No players online")
+            
             sys.stdout.flush()
         except Exception as e:
             print(f"[DEBUG] Error connecting to external server {SERVER_IP}:{SERVER_PORT}: {type(e).__name__}: {e}")
@@ -319,6 +333,9 @@ async def poll_status(message):
             localhost_status = localhost_server.status()
             localhost_working = True
             print(f"[DEBUG] Local server working: {localhost_status.players.online} players")
+            if localhost_status.players.sample:
+                local_players = [p.name for p in localhost_status.players.sample]
+                print(f"[DEBUG] Local server players: {', '.join(local_players)}")
         except Exception as e:
             print(f"[DEBUG] Local server also failed: {e}")
             
