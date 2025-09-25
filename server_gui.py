@@ -56,6 +56,7 @@ class MinecraftServerGUI:
         self.server_running = False
         self.bot_running = False
         self.monitoring_external_server = False
+        self.analytics_running = True  # Flag to control analytics thread
         
         # Server paths - update these as needed
         self.server_dir = r"F:\server mine atm102\atm10 2"
@@ -73,7 +74,7 @@ class MinecraftServerGUI:
         self.analytics_update_interval = 5000  # 5 seconds
         
         # Performance alert settings
-        self.memory_threshold_mb = 4096  # 4GB warning threshold
+        self.memory_threshold_mb = 12288  # 12GB warning threshold
         self.cpu_threshold_percent = 85  # 85% CPU warning threshold
         self.tps_threshold = 15  # TPS warning threshold
         self.last_memory_alert = None
@@ -96,6 +97,14 @@ class MinecraftServerGUI:
         
         # Start periodic analytics updates
         self.schedule_analytics_update()
+        
+        # Set up window close protocol
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        
+    def on_closing(self):
+        """Handle window closing event"""
+        self.analytics_running = False  # Stop analytics thread
+        self.root.destroy()  # Close the window
         
     def schedule_analytics_update(self):
         """Schedule periodic analytics display updates"""
@@ -575,6 +584,8 @@ class MinecraftServerGUI:
         """Check if a Minecraft server is already running"""
         try:
             import psutil
+            minecraft_processes = []
+            
             for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
                 try:
                     cmdline = proc.info.get('cmdline', [])
@@ -590,9 +601,28 @@ class MinecraftServerGUI:
                             ('bukkit' in cmdline_str) or
                             ('fabric' in cmdline_str) or
                             ('-server' in cmdline_str and '.jar' in cmdline_str)):
-                            return proc.info['pid']
+                            
+                            # Get memory usage to find the actual server (not launcher)
+                            try:
+                                process = psutil.Process(proc.info['pid'])
+                                memory_mb = process.memory_info().rss / 1024 / 1024
+                                minecraft_processes.append((proc.info['pid'], memory_mb, ' '.join(cmdline)))
+                            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                                continue
+                                
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
                     continue
+            
+            # Return the process with highest memory usage (actual server, not launcher)
+            if minecraft_processes:
+                # Sort by memory usage (descending) and return the PID of the highest
+                minecraft_processes.sort(key=lambda x: x[1], reverse=True)
+                highest_memory_pid, memory_mb, cmdline = minecraft_processes[0]
+                
+                # Only return if memory usage is reasonable for a Minecraft server (>50MB)
+                if memory_mb > 50:  
+                    return highest_memory_pid
+                    
         except ImportError:
             # psutil not available, skip check
             pass
@@ -892,7 +922,7 @@ class MinecraftServerGUI:
         
     def analytics_monitor_thread(self):
         """Background thread for collecting performance data"""
-        while True:
+        while self.analytics_running:
             try:
                 # Check if server is running (either internally started or external)
                 if self.server_running and self.server_process:
@@ -908,12 +938,24 @@ class MinecraftServerGUI:
                     else:
                         self.monitoring_external_server = False
                     
-                # Update display on main thread
-                self.root.after(0, self.update_analytics_display)
+                # Update display on main thread (with exception handling)
+                try:
+                    if self.analytics_running:  # Check flag before GUI updates
+                        self.root.after(0, self.update_analytics_display)
+                except RuntimeError:
+                    # Main loop is not running anymore, stop analytics
+                    self.analytics_running = False
+                    break
                 
             except Exception as e:
-                self.root.after(0, lambda: self.analytics_status.config(
-                    text=f"Analytics error: {e}", fg="#f44336"))
+                try:
+                    if self.analytics_running:
+                        self.root.after(0, lambda: self.analytics_status.config(
+                            text=f"Analytics error: {e}", fg="#f44336"))
+                except RuntimeError:
+                    # Main loop is not running anymore, stop analytics
+                    self.analytics_running = False
+                    break
                     
             time.sleep(5)  # Update every 5 seconds
             
@@ -932,7 +974,21 @@ class MinecraftServerGUI:
             # Collect CPU and memory data
             cpu_percent = process.cpu_percent()
             memory_info = process.memory_info()
-            memory_mb = memory_info.rss / 1024 / 1024  # Convert to MB
+            
+            # Use same memory calculation as external monitoring for consistency
+            try:
+                if hasattr(process, 'memory_full_info'):
+                    full_memory = process.memory_full_info()
+                    if hasattr(full_memory, 'uss'):  # Unique Set Size (Windows)
+                        memory_mb = full_memory.uss / 1024 / 1024
+                    elif hasattr(full_memory, 'wset'):  # Working Set (Windows) 
+                        memory_mb = full_memory.wset / 1024 / 1024
+                    else:
+                        memory_mb = memory_info.rss / 1024 / 1024
+                else:
+                    memory_mb = memory_info.rss / 1024 / 1024
+            except:
+                memory_mb = memory_info.rss / 1024 / 1024
             
             current_time = datetime.now()
             
@@ -978,10 +1034,32 @@ class MinecraftServerGUI:
             import psutil
             process = psutil.Process(pid)
             
+            # Get process info for debugging
+            process_name = process.name()
+            
             # Collect CPU and memory data
             cpu_percent = process.cpu_percent()
             memory_info = process.memory_info()
-            memory_mb = memory_info.rss / 1024 / 1024  # Convert to MB
+            
+            # On Windows, try to get Private Working Set (closer to Task Manager)
+            try:
+                # Try to get Windows-specific memory info
+                if hasattr(process, 'memory_full_info'):
+                    full_memory = process.memory_full_info()
+                    if hasattr(full_memory, 'uss'):  # Unique Set Size (Windows)
+                        memory_mb = full_memory.uss / 1024 / 1024
+                    elif hasattr(full_memory, 'wset'):  # Working Set (Windows) 
+                        memory_mb = full_memory.wset / 1024 / 1024
+                    else:
+                        memory_mb = memory_info.rss / 1024 / 1024
+                else:
+                    memory_mb = memory_info.rss / 1024 / 1024
+            except:
+                # Fallback to RSS if Windows-specific methods fail
+                memory_mb = memory_info.rss / 1024 / 1024
+            
+            # Also get virtual memory for comparison
+            vms_mb = memory_info.vms / 1024 / 1024  # Virtual memory
             
             current_time = datetime.now()
             
@@ -993,6 +1071,36 @@ class MinecraftServerGUI:
             # Try to extract TPS from logs (if available)
             tps = self.extract_tps_from_logs()
             self.performance_data['tps'].append(tps if tps else 20.0)
+            
+            # Store additional debug info 
+            if not hasattr(self, 'last_process_debug'):
+                self.last_process_debug = None
+                
+            # Log process info occasionally for debugging
+            if self.last_process_debug != process_name:
+                self.last_process_debug = process_name
+                try:
+                    # Get command line for more detailed info
+                    cmdline = ' '.join(process.cmdline())
+                    print(f"[DEBUG] Monitoring process: {process_name} (PID: {pid})")
+                    print(f"[DEBUG] Memory RSS: {memory_info.rss / 1024 / 1024:.1f} MB")
+                    print(f"[DEBUG] Memory VMS: {vms_mb:.1f} MB")
+                    print(f"[DEBUG] Memory Used (display): {memory_mb:.1f} MB")
+                    
+                    # Try to get more memory details
+                    try:
+                        if hasattr(process, 'memory_full_info'):
+                            full_mem = process.memory_full_info()
+                            if hasattr(full_mem, 'uss'):
+                                print(f"[DEBUG] Memory USS (Unique): {full_mem.uss / 1024 / 1024:.1f} MB")
+                            if hasattr(full_mem, 'pss'):
+                                print(f"[DEBUG] Memory PSS (Proportional): {full_mem.pss / 1024 / 1024:.1f} MB")
+                    except:
+                        pass
+                        
+                    print(f"[DEBUG] Command: {cmdline[:100]}...")
+                except Exception as e:
+                    print(f"[DEBUG] Error getting process info: {e}")
             
             # Set server start time if not already set
             if not self.server_start_time:
