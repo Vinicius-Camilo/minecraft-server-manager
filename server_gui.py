@@ -421,6 +421,23 @@ class MinecraftServerGUI:
                                                        insertbackground="white")
         self.console_output.pack(fill="both", expand=True, padx=10, pady=5)
         
+        # Console status area
+        status_frame = tk.Frame(console_frame, bg="#2b2b2b")
+        status_frame.pack(fill="x", padx=10, pady=(0, 5))
+        
+        self.console_status_label = tk.Label(status_frame, text="", 
+                                           bg="#2b2b2b", fg="#FF9800", 
+                                           font=('Arial', 10, 'italic'))
+        self.console_status_label.pack(side="left")
+        
+        # Button to find server console (for external servers)
+        self.find_console_btn = tk.Button(status_frame, text="📋 Find Server Console", 
+                                         command=self.find_server_console,
+                                         bg="#FF9800", fg="white", 
+                                         font=('Arial', 9),
+                                         state="disabled")
+        self.find_console_btn.pack(side="right", padx=(10, 0))
+        
         # Command input
         command_frame = tk.Frame(console_frame, bg="#2b2b2b")
         command_frame.pack(fill="x", padx=10, pady=5)
@@ -1170,6 +1187,9 @@ class MinecraftServerGUI:
                     self.analytics_status.config(text="Analytics: Active (External Server)", fg="#2196F3")
                 else:
                     self.analytics_status.config(text="Analytics: Active", fg="#4CAF50")
+                    
+                # Update console status
+                self.update_console_status()
             else:
                 # Server offline
                 self.cpu_label.config(text="0.0%", fg="#666666")
@@ -1178,8 +1198,35 @@ class MinecraftServerGUI:
                 self.tps_label.config(text="--", fg="#666666")
                 self.analytics_status.config(text="Analytics: No Server Detected", fg="#FF9800")
                 
+                # Update console status
+                self.update_console_status()
+                
         except Exception as e:
             self.analytics_status.config(text=f"Analytics error: {e}", fg="#f44336")
+            
+    def update_console_status(self):
+        """Update console status and enable/disable command input"""
+        try:
+            if self.server_running and self.server_process and hasattr(self.server_process, 'stdin'):
+                # Internal server with stdin access - console commands work
+                self.console_status_label.config(text="✅ Console commands available (internal server)", fg="#4CAF50")
+                self.command_entry.config(state="normal", bg="#3b3b3b")
+                self.send_btn.config(state="normal", bg="#2196F3")
+                self.find_console_btn.config(state="disabled", bg="#666666")
+            elif self.monitoring_external_server or (self.server_process and not hasattr(self.server_process, 'stdin')):
+                # External server or server without stdin access - console commands don't work
+                self.console_status_label.config(text="⚠️ Console input disabled (external server) - Use server's own console", fg="#FF9800")
+                self.command_entry.config(state="disabled", bg="#555555")
+                self.send_btn.config(state="disabled", bg="#666666")
+                self.find_console_btn.config(state="normal", bg="#FF9800")
+            else:
+                # No server detected
+                self.console_status_label.config(text="❌ No server detected", fg="#666666")
+                self.command_entry.config(state="disabled", bg="#555555")
+                self.send_btn.config(state="disabled", bg="#666666")
+                self.find_console_btn.config(state="disabled", bg="#666666")
+        except Exception:
+            pass  # Ignore status update errors
             
     def update_performance_graph(self):
         """Update the performance graph display"""
@@ -1969,7 +2016,16 @@ class MinecraftServerGUI:
                 pid, name, cwd, is_our_server = selected_server
                 server_process = psutil.Process(pid)
                 self.server_process = server_process
-                self.server_running = True
+                
+                if is_our_server:
+                    # This is our own server process
+                    self.server_running = True
+                    self.monitoring_external_server = False
+                else:
+                    # This is an external server process
+                    self.server_running = False
+                    self.monitoring_external_server = True
+                    
                 self.update_ui_state()
                 
                 self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] 🔗 Auto-connected to server process (PID: {pid})\n")
@@ -2053,7 +2109,16 @@ class MinecraftServerGUI:
             try:
                 server_process = psutil.Process(pid)
                 self.server_process = server_process
-                self.server_running = True
+                
+                if is_our_server:
+                    # This is our own server process
+                    self.server_running = True
+                    self.monitoring_external_server = False
+                else:
+                    # This is an external server process
+                    self.server_running = False
+                    self.monitoring_external_server = True
+                    
                 self.update_ui_state()
                 
                 self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] ✅ Connected to server process (PID: {pid})\n")
@@ -2093,12 +2158,27 @@ class MinecraftServerGUI:
     def send_command(self, event=None):
         """Send command to server"""
         command = self.command_entry.get().strip()
-        if command and self.server_running:
-            self.send_server_command(command)
-            self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] > {command}\n")
-            if self.console_auto_scroll_var.get():
-                self.console_output.see(tk.END)
-            self.command_entry.delete(0, tk.END)
+        if command:
+            if self.server_running and self.server_process:
+                # Internal server - can send commands
+                self.send_server_command(command)
+                self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] > {command}\n")
+                if self.console_auto_scroll_var.get():
+                    self.console_output.see(tk.END)
+                self.command_entry.delete(0, tk.END)
+            elif self.monitoring_external_server:
+                # External server - show helpful message
+                self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] ⚠️ Cannot send '{command}' to external server\n")
+                self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}]    └── Please use the server's own console window\n")
+                self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}]    └── Or restart server through this GUI for command support\n")
+                if self.console_auto_scroll_var.get():
+                    self.console_output.see(tk.END)
+                self.command_entry.delete(0, tk.END)
+            else:
+                # No server detected
+                self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] ❌ No server detected to send commands to\n")
+                if self.console_auto_scroll_var.get():
+                    self.console_output.see(tk.END)
             
     def send_server_command(self, command):
         """Send command to server process"""
@@ -2119,6 +2199,91 @@ class MinecraftServerGUI:
             
         if self.console_auto_scroll_var.get():
             self.console_output.see(tk.END)
+            
+    def find_server_console(self):
+        """Try to find and bring the server's console window to front"""
+        try:
+            if not (self.monitoring_external_server and self.server_process):
+                messagebox.showwarning("No External Server", "No external server process detected.")
+                return
+                
+            # Try to find the console window for the server process
+            import ctypes
+            from ctypes import wintypes
+            
+            # Get the process ID
+            pid = self.server_process.pid
+            
+            # Try multiple approaches to find the console window
+            console_found = False
+            
+            # Method 1: Find console window by process ID
+            try:
+                # Get all windows and find one associated with our process
+                def enum_windows_proc(hwnd, lParam):
+                    if ctypes.windll.user32.IsWindowVisible(hwnd):
+                        # Get window process ID
+                        window_pid = wintypes.DWORD()
+                        ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(window_pid))
+                        
+                        if window_pid.value == pid:
+                            # Get window title to check if it's likely a console
+                            title_length = ctypes.windll.user32.GetWindowTextLengthW(hwnd)
+                            if title_length > 0:
+                                title_buffer = ctypes.create_unicode_buffer(title_length + 1)
+                                ctypes.windll.user32.GetWindowTextW(hwnd, title_buffer, title_length + 1)
+                                title = title_buffer.value
+                                
+                                # Check if title suggests it's a console/command window
+                                if any(keyword in title.lower() for keyword in ['cmd', 'console', 'command', 'java', 'server']):
+                                    # Bring window to front
+                                    ctypes.windll.user32.SetForegroundWindow(hwnd)
+                                    ctypes.windll.user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+                                    return False  # Stop enumeration
+                    return True  # Continue enumeration
+                
+                # Enumerate all windows
+                EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, ctypes.POINTER(ctypes.c_int))
+                ctypes.windll.user32.EnumWindows(EnumWindowsProc(enum_windows_proc), 0)
+                console_found = True
+                
+            except Exception as e:
+                self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] ⚠️ Could not find console window: {e}\n")
+            
+            # Method 2: Try to attach to console and create new one if needed
+            if not console_found:
+                try:
+                    # Try to open a new command prompt in the server directory
+                    import subprocess
+                    import psutil
+                    
+                    # Get server working directory
+                    try:
+                        server_cwd = self.server_process.cwd()
+                    except:
+                        server_cwd = self.server_dir
+                    
+                    # Open command prompt in server directory
+                    cmd_command = f'start "Minecraft Server Console" cmd /k "echo Connected to Minecraft Server (PID: {pid}) && echo Directory: {server_cwd} && echo. && echo Type Minecraft commands here... && echo."'
+                    subprocess.Popen(cmd_command, shell=True, cwd=server_cwd)
+                    
+                    self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] 🖥️ Opened new command prompt for server interaction\n")
+                    self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}]    └── Note: Commands typed there won't be sent to server automatically\n")
+                    self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}]    └── This is for reference and potential manual server restart\n")
+                    
+                except Exception as e:
+                    self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] ❌ Could not open command prompt: {e}\n")
+            else:
+                self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] 🎯 Attempted to bring server console to front\n")
+                self.console_output.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}]    └── Look for console window with Java/Server in title\n")
+            
+            if self.console_auto_scroll_var.get():
+                self.console_output.see(tk.END)
+                
+        except ImportError:
+            messagebox.showerror("Feature Unavailable", "This feature requires Windows-specific libraries.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to find server console: {e}")
                 
     def read_server_output(self):
         """Read server output in separate thread"""

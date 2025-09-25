@@ -8,7 +8,7 @@ class LauncherGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Minecraft Server Launcher")
-        self.root.geometry("500x400")  # Increased size for better spacing
+        self.root.geometry("500x450")  # Increased height to ensure all buttons fit
         self.root.configure(bg="#2b2b2b")
         self.root.resizable(False, False)
         
@@ -16,128 +16,100 @@ class LauncherGUI:
         
     def setup_ui(self):
         # Title
-        title_label = tk.Label(self.root, text="🎮 Minecraft Server Manager", 
+        title_label = tk.Label(self.root, text="🎮 Minecraft Server Launcher", 
                               bg="#2b2b2b", fg="white", 
-                              font=('Arial', 16, 'bold'))
-        title_label.pack(pady=(30, 10))
+                              font=('Arial', 18, 'bold'))
+        title_label.pack(pady=(30, 20))
         
         # Description
         desc_label = tk.Label(self.root, 
-                             text="Unified interface for managing your server and Discord bot:",
+                             text="Choose your interface:",
                              bg="#2b2b2b", fg="#cccccc", 
-                             font=('Arial', 11))
-        desc_label.pack(pady=(0, 25))
+                             font=('Arial', 12))
+        desc_label.pack(pady=(0, 30))
         
         # Buttons frame
         buttons_frame = tk.Frame(self.root, bg="#2b2b2b")
-        buttons_frame.pack(pady=10, padx=30, fill="x")
+        buttons_frame.pack(pady=20, padx=40, fill="both", expand=True)
         
-        # Main Launch Button
-        launch_btn = tk.Button(buttons_frame, 
-                               text="� Launch Server Manager\n(Complete Interface)", 
-                               command=self.launch_combined_mode,
-                               bg="#4CAF50", fg="white", 
-                               font=('Arial', 14, 'bold'),
-                               width=35, height=4,
-                               relief="flat", bd=0)
-        launch_btn.pack(pady=15, fill="x")
+        # Server Manager GUI
+        gui_btn = tk.Button(buttons_frame, 
+                           text="🖥️ Server Manager\n(Full GUI Interface)", 
+                           command=self.launch_gui_mode,
+                           bg="#4CAF50", fg="white", 
+                           font=('Arial', 12, 'bold'),
+                           height=3,
+                           relief="flat", bd=0)
+        gui_btn.pack(pady=8, fill="x")
+        print("GUI button created")
         
-        # Alternative options (smaller)
-        alt_frame = tk.Frame(self.root, bg="#2b2b2b")
-        alt_frame.pack(pady=(20, 10), padx=50, fill="x")
+        # Discord Bot Console
+        bot_btn = tk.Button(buttons_frame, 
+                           text="🤖 Discord Bot Console\n(Bot with Visible Output)", 
+                           command=self.launch_bot_console,
+                           bg="#2196F3", fg="white", 
+                           font=('Arial', 12, 'bold'),
+                           height=3,
+                           relief="flat", bd=0)
+        bot_btn.pack(pady=8, fill="x")
+        print("Bot button created")
         
-        tk.Label(alt_frame, text="Alternative Options:", 
-                bg="#2b2b2b", fg="#888888", font=('Arial', 10)).pack()
-        
-        alt_buttons = tk.Frame(alt_frame, bg="#2b2b2b")
-        alt_buttons.pack(fill="x", pady=10)
-        
-        # Discord Bot GUI only (smaller)
-        bot_gui_btn = tk.Button(alt_buttons, 
-                               text="🤖 Bot Only", 
-                               command=self.launch_bot_gui,
-                               bg="#7B1FA2", fg="white", 
-                               font=('Arial', 9),
-                               width=15, height=2)
-        bot_gui_btn.pack(side="left", padx=5)
-        
-        # Standard mode button (smaller)
-        standard_btn = tk.Button(alt_buttons, 
-                                text="⚡ Console Mode", 
-                                command=self.launch_standard_mode,
-                                bg="#2196F3", fg="white", 
-                                font=('Arial', 9),
-                                width=15, height=2)
-        standard_btn.pack(side="right", padx=5)
+        # Server Only Console
+        server_btn = tk.Button(buttons_frame, 
+                              text="⚡ Server Console\n(Server Only, No Bot/GUI)", 
+                              command=self.launch_server_console,
+                              bg="#FF5722", fg="white", 
+                              font=('Arial', 12, 'bold'),
+                              height=3,
+                              relief="flat", bd=0)
+        server_btn.pack(pady=8, fill="x")
+        print("Server button created")
         
         # Info label at bottom
         info_label = tk.Label(self.root, 
-                             text="Main interface includes server control, bot management, logs, and player monitoring",
+                             text="Three clean options: Full GUI • Bot Console • Server Only",
                              bg="#2b2b2b", fg="#888888", 
-                             font=('Arial', 9),
+                             font=('Arial', 10),
                              justify="center")
-        info_label.pack(side="bottom", pady=20)
-    def launch_combined_mode(self):
-        """Launch with combined server + bot GUI interface"""
-        # Show confirmation first, then launch after user clicks OK
-        messagebox.showinfo("Launching", "Combined GUI interface will start after you click OK.\nThis launcher will then close.")
+        info_label.pack(side="bottom", pady=15)
+        
+    def launch_gui_mode(self):
+        """Launch Server Manager with full GUI interface"""
+        messagebox.showinfo("Launching", "Server Manager GUI will start after you click OK.\nThis launcher will then close.")
         
         try:
             subprocess.Popen([sys.executable.replace('python.exe', 'pythonw.exe'), "server_gui.py"],
                            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0)
-            self.root.destroy()  # Use destroy instead of quit
-            sys.exit(0)
-        except Exception as e:
-            try:
-                subprocess.Popen([sys.executable, "server_gui.py"])
-                self.root.destroy()  # Use destroy instead of quit
-                sys.exit(0)
-            except Exception as e2:
-                messagebox.showerror("Error", f"Failed to launch combined mode: {e2}")
-            
-    def launch_bot_gui(self):
-        """Launch Discord bot GUI only"""
-    def launch_bot_gui(self):
-        """Launch Discord bot GUI only"""
-        try:
-            subprocess.Popen([sys.executable.replace('python.exe', 'pythonw.exe'), "bot.py"])
-            messagebox.showinfo("Launched", "Discord Bot is starting...\nThis launcher will now close.")
-            self.root.destroy()
-            sys.exit(0)
-        except Exception as e:
-            try:
-                subprocess.Popen([sys.executable, "bot.py"])
-                messagebox.showinfo("Launched", "Discord Bot is starting...\nThis launcher will now close.")
-                self.root.destroy()
-                sys.exit(0)
-            except Exception as e2:
-                messagebox.showerror("Error", f"Failed to launch bot: {e2}")
-            
-    def launch_gui_mode(self):
-        """Launch with GUI interface"""
-        try:
-            subprocess.Popen([sys.executable.replace('python.exe', 'pythonw.exe'), "server_gui.py"])
-            messagebox.showinfo("Launched", "Server GUI interface is starting...\nThis launcher will now close.")
             self.root.destroy()
             sys.exit(0)
         except Exception as e:
             try:
                 subprocess.Popen([sys.executable, "server_gui.py"])
-                messagebox.showinfo("Launched", "Server GUI interface is starting...\nThis launcher will now close.")
                 self.root.destroy()
                 sys.exit(0)
             except Exception as e2:
-                messagebox.showerror("Error", f"Failed to launch GUI mode: {e2}")
+                messagebox.showerror("Error", f"Failed to launch Server Manager: {e2}")
             
-    def launch_standard_mode(self):
-        """Launch in console mode"""
+    def launch_bot_console(self):
+        """Launch Discord bot with visible console output"""
         try:
-            subprocess.Popen([sys.executable, "bot.py"])
-            messagebox.showinfo("Launched", "Console mode is starting...\nThis launcher will now close.")
+            subprocess.Popen([sys.executable, "bot.py"], 
+                           creationflags=0)  # Visible console window
+            messagebox.showinfo("Launched", "Discord bot is starting in console mode...\nThis launcher will now close.")
             self.root.destroy()
             sys.exit(0)
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to launch console mode: {e}")
+            messagebox.showerror("Error", f"Failed to launch Discord bot console: {e}")
+            
+    def launch_server_console(self):
+        """Launch server-only console (no GUI, no Discord bot)"""
+        try:
+            subprocess.Popen([sys.executable, "server_console.py"])
+            messagebox.showinfo("Launched", "Server console is starting...\nThis launcher will now close.")
+            self.root.destroy()
+            sys.exit(0)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to launch server console: {e}")
 
 def main():
     root = tk.Tk()
