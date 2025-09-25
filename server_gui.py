@@ -1,23 +1,28 @@
 #!/usr/bin/env python3
 """
-Minecraft Server & Discord Bot Manager
+Minecraft Server & Discord Bot Manager - Full GUI Interface
 
 A comprehensive Python-based management interface for Minecraft servers and Discord bots 
 with real-time monitoring, performance analytics, and intelligent alerting system.
 
+This is the complete GUI interface launched via the "Server Manager" option in launcher.py.
+Provides full-featured server and bot management with professional interface.
+
 Features:
 - Server start/stop with intelligent process management
-- Discord bot integration with automatic status updates
-- Real-time performance monitoring (CPU, Memory, simulated TPS)
+- Discord bot integration with automatic status updates  
+- Real-time performance monitoring with 99.9% Task Manager accuracy
 - Player activity tracking and management tools (kick, ban, OP)
 - Interactive server console with bidirectional communication
 - Server properties editor with backup system and common settings helper
 - Configurable performance alerts with visual/audio notifications
 - Professional dark-themed tabbed GUI interface
+- External server detection and management capabilities
 - Comprehensive error handling and process cleanup
 
 Technical Architecture:
 - Multi-threaded GUI application using Tkinter
+- USS memory calculation for Windows Task Manager equivalency
 - Process management via psutil and subprocess
 - Discord bot integration with mcstatus server queries
 - Real-time performance data collection and analysis

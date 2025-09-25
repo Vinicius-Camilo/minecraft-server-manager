@@ -1,12 +1,31 @@
 #!/usr/bin/env python3
 """
-Simple Server Console - Lightweight Minecraft server management without GUI or Discord bot
+Minecraft Server Console - Lightweight Server Management
 
-This is a minimal console-only interface for basic server management:
-- Start/stop server
-- Send commands to server
-- View server output in real-time
-- No GUI, no Discord bot, just server control
+Simple console-only interface for basic Minecraft server management without GUI or Discord bot.
+This is the lightweight option launched via the "Server Console" option in launcher.py.
+
+Features:
+- Start/stop/restart server commands
+- Send commands directly to server
+- View server output in real-time with timestamps
+- Minimal resource usage - no GUI overhead
+- Direct server interaction without additional processes
+- Clean console interface with basic command set
+
+Usage:
+- start     - Start the Minecraft server
+- stop      - Stop the Minecraft server  
+- restart   - Restart the Minecraft server
+- quit      - Exit this console
+- help      - Show available commands
+- <any>     - Send command directly to server
+
+Perfect for:
+- Quick server management without GUI overhead
+- Remote server administration
+- Low-resource environments
+- Direct server command access
 
 Usage: python server_console.py
 """

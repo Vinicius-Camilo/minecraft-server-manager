@@ -1,3 +1,23 @@
+#!/usr/bin/env python3
+"""
+Minecraft Server Manager - Launcher Interface
+
+Clean 3-option launcher for the Minecraft Server Management Suite.
+Provides simple interface to choose between three distinct management modes.
+
+Options:
+1. Server Manager - Full GUI interface with all features (server_gui.py)
+2. Discord Bot Console - Discord bot with visible console output (bot.py) 
+3. Server Console - Lightweight server-only management (server_console.py)
+
+Each option serves a specific purpose:
+- Server Manager: Complete interface for server and bot management
+- Bot Console: Standalone Discord bot with monitoring output
+- Server Console: Pure server management without GUI or bot overhead
+
+Usage: python launcher.py
+"""
+
 import tkinter as tk
 from tkinter import messagebox
 import subprocess

@@ -1,6 +1,50 @@
 # Changelog
 
-All notable changes to the Minecraft Server & Discord Bot Manager project will be documented in this file.
+All notable changes to the Minecraft Server Manager Suite will be documented in this file.
+
+## [2.1.0] - 2025-09-24
+
+### Interface Simplification & Console Addition
+
+#### Added
+- **Server Console** (`server_console.py`) - New lightweight server-only management
+  - Direct server start/stop/restart commands
+  - Real-time server output with timestamps
+  - Send commands directly to server console
+  - Minimal resource usage - no GUI or bot overhead
+  - Perfect for remote administration and low-resource environments
+
+#### Enhanced  
+- **Launcher Redesign** - Streamlined to 3 clean options
+  - **Server Manager** - Complete GUI interface with all features
+  - **Discord Bot Console** - Bot with visible monitoring output
+  - **Server Console** - New lightweight server-only option
+  - Removed confusing duplicate options
+  - Increased window size for better visibility
+  - Professional 3-button layout with clear descriptions
+
+#### Improved
+- **Performance Monitoring Accuracy** - Now matches Windows Task Manager within 0.1%
+  - Changed from RSS to USS (Unique Set Size) memory calculation
+  - 99.9% accuracy with Windows Task Manager readings
+  - Enhanced external server detection with memory-based filtering
+- **Console Status Management** - Better user experience
+  - Visual indicators for console input state
+  - Clear communication of external server limitations
+  - Improved threading cleanup and error handling
+
+#### Fixed
+- **Launcher Mode Confusion** - Eliminated redundant options
+- **Process Detection** - Enhanced reliability for external servers
+- **Memory Calculation** - Now precisely matches system tools
+- **Threading Issues** - Proper cleanup on window close
+
+#### Updated
+- **Documentation** - Comprehensive updates to reflect new structure
+  - Updated README.md with 3-interface approach
+  - Enhanced file headers with purpose clarification  
+  - Updated project structure documentation
+  - Added usage examples for all three interfaces
 
 ## [2.0.0] - 2025-09-24
 

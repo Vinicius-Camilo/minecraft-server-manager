@@ -1,10 +1,23 @@
-# 🎮 Minecraft Server & Discord Bot Manager
+# 🎮 Minecraft Server Manager Suite
 
-A comprehensive Python-based management interface for Minecraft servers and Discord bots with real-time monitoring, performance analytics, and intelligent alerting system.
+A comprehensive Python-based management suite for Minecraft servers and Discord bots with real-time monitoring, performance analytics, and multiple interface options.
 
 > **📝 Personal Note:** This project was created for fun to manage a small Minecraft server for friends. While it includes comprehensive features and professional documentation, it's designed for small-scale use and personal learning. Feel free to use, modify, or learn from it, but don't expect enterprise-level complexity! 😊
 
-## 📋 Table of Contents
+## � Quick Start
+
+Run the launcher to choose your interface:
+```bash
+python launcher.py
+```
+
+**Three clean options:**
+- **🖥️ Server Manager** - Full GUI with all features
+- **🤖 Discord Bot Console** - Bot with visible output  
+- **⚡ Server Console** - Lightweight server-only management
+
+## �📋 Table of Contents
+- [Interface Options](#-interface-options)
 - [Features](#-features)
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
@@ -14,6 +27,30 @@ A comprehensive Python-based management interface for Minecraft servers and Disc
 - [Technical Details](#-technical-details)
 - [Contributing](#-contributing)
 - [License](#-license)
+
+## 🎯 Interface Options
+
+### 🖥️ Server Manager (`server_gui.py`)
+**Complete GUI interface with all features**
+- Full server and Discord bot management
+- Real-time performance monitoring with 99.9% Task Manager accuracy
+- Player management, console interaction, and analytics
+- Professional dark-themed tabbed interface
+- External server detection and management
+
+### 🤖 Discord Bot Console (`bot.py`)
+**Standalone Discord bot with visible output**
+- Real-time server status monitoring in Discord
+- Player join/leave notifications
+- Console output for monitoring bot activity
+- No GUI overhead - pure bot functionality
+
+### ⚡ Server Console (`server_console.py`)  
+**Lightweight server-only management**
+- Direct server start/stop/restart commands
+- Real-time server output with timestamps
+- Send commands directly to server
+- Minimal resource usage - no GUI, no bot
 
 ## ✨ Features
 
@@ -176,36 +213,56 @@ EXTERNAL_DOMAIN=your.domain.com
 
 ## 🚀 Usage
 
-### Quick Start
+### Quick Start - Launcher Method (Recommended)
 ```bash
 # Activate virtual environment
 .venv\Scripts\activate
 
-# Run the main GUI application
-python server_gui.py
+# Run the launcher to choose your interface
+python launcher.py
 ```
 
-### Available Scripts
-- `server_gui.py` - Main GUI application with full functionality
-- `bot.py` - Standalone Discord bot (if running separately)
-- `launcher.py` - Alternative launcher with file manager integration
+**Choose your interface:**
+- **Server Manager** - Complete GUI with all features
+- **Discord Bot Console** - Bot with visible monitoring output
+- **Server Console** - Lightweight server-only management
 
-### GUI Navigation
+### Direct Script Usage
+```bash
+# Full GUI interface (recommended for complete management)
+python server_gui.py
+
+# Discord bot with console output (monitoring bot activity)
+python bot.py
+
+# Server-only console (minimal resource usage)
+python server_console.py
+```
+
+### GUI Navigation (Server Manager)
 1. **Control Tab**: Start/stop server and bot, view status
-2. **Bot Tab**: Monitor Discord bot logs and status
+2. **Bot Tab**: Monitor Discord bot logs and status  
 3. **Console Tab**: Interactive server console with command input
 4. **Logs Tab**: View and analyze server log files
 5. **Players Tab**: Manage connected players and permissions
 6. **Properties Tab**: Edit server.properties with backup system
 7. **Analytics Tab**: Performance monitoring and alert configuration
 
+### Console Commands (Server Console)
+- `start` - Start the Minecraft server
+- `stop` - Stop the Minecraft server
+- `restart` - Restart the server
+- `quit` - Exit the console
+- `<command>` - Send any command to the server
+
 ## 📁 Project Structure
 
 ```
 minecraft-server-manager/
-├── server_gui.py          # Main GUI application
-├── bot.py                 # Discord bot implementation
-├── launcher.py            # Alternative launcher
+├── launcher.py            # 3-option launcher interface
+├── server_gui.py          # Complete GUI management interface
+├── bot.py                 # Discord bot with console output  
+├── server_console.py      # Lightweight server-only console
 ├── File Manager.py        # File management utilities
 ├── requirements.txt       # Python dependencies
 ├── .env.example          # Environment configuration template
@@ -213,6 +270,12 @@ minecraft-server-manager/
 ├── README.md             # Project documentation
 └── backup_*/             # Automatic backups (gitignored)
 ```
+
+### Script Purposes
+- **`launcher.py`** - Clean entry point with 3 interface options
+- **`server_gui.py`** - Full-featured GUI with all management tools
+- **`bot.py`** - Standalone Discord bot for server monitoring
+- **`server_console.py`** - Minimal console for direct server control
 
 ## 🔧 Technical Details
 

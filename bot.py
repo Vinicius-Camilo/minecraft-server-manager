@@ -1,26 +1,21 @@
 #!/usr/bin/env python3
 """
-Discord Bot for Minecraft Server Statu                print("[INFO] Status marked as offline before closing.")
-            except asyncio.TimeoutError:
-                print("[ERROR] Timeout when marking status offline.")
-            except Exception as e:
-                print(f"[ERROR] Failed to mark status offline: {type(e).__name__}: {e}")
-        except:
-            print("[WARN] Could not mark offline - loop closed or message unavailable.")oring
+Discord Bot for Minecraft Server Status Monitoring - Console Mode
 
 This Discord bot provides real-time Minecraft server status monitoring and
-automatic status updates in Discord channels. It can run standalone or integrated
-with the main GUI application.
+automatic status updates in Discord channels. This is the standalone console
+version launched via the "Discord Bot Console" option in launcher.py.
 
 Features:
 - Real-time server status monitoring with automatic updates every 30 seconds
 - Automatic status message posting and updating in Discord channels
-- External server connectivity testing (internal and external domains)
+- External server connectivity testing (internal and external domains)  
 - Force server status checks via trigger file system
 - Player count and online status tracking
 - Server log monitoring for player join/leave events
 - Comprehensive error handling and connection management
 - Persistent status message management (remembers message ID)
+- Visible console output for monitoring bot activity
 
 Functionality:
 - Monitors Minecraft server via mcstatus library
